@@ -8,7 +8,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: "https://e-learning-website-five-alpha.vercel.app",
     credentials: true,
   })
 );
