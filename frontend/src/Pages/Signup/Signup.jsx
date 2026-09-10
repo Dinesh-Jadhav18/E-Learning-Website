@@ -59,38 +59,39 @@ const Signup = () => {
       Password: Password,
     };
 
-   try {
-  const response = await fetch(
-    `${import.meta.env.VITE_API_URL}/${userType}/signup`,
-    {
-      method: "POST",
-      mode: "cors",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+    try {
+      // Send data to backend (you need to implement this part)
+      const response = await fetch(`/api/${userType}/signup`, {
+        method: "POST",
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Handle response
+      const responseData = await response.json();
+
+      setErr(responseData.message);
+
+      if (response.ok) {
+        // Registration successful, you can redirect or do something else
+        console.log("Registration successful");
+        navigate('/varifyEmail');
+      } else if (response.status === 400) {
+        // Handle specific validation errors returned by the server
+        setErrors(responseData.errors || {});
+      } else {
+        // Other status codes (e.g., 500 Internal Server Error)
+        console.error("Registration failed with status code:", response.status);
+      }
+    } catch (error) {
+      setErrors(error.message);
+     
     }
-  );
-
-  const responseData = await response.json();
-
-  setErr(responseData.message);
-
-  if (response.ok) {
-    console.log("Registration successful");
-    navigate("/varifyEmail");
-  } else if (response.status === 400) {
-    setErrors(responseData.errors || {});
-  } else {
-    console.error(
-      "Registration failed with status code:",
-      response.status
-    );
-  }
-} catch (error) {
-  setErrors(error.message);
-}
+  };
 
   return (
     <>
