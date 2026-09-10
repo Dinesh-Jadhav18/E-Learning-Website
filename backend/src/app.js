@@ -11,32 +11,14 @@ const app = express();
 // CORS CONFIGURATION
 // ===============================
 
-const allowedOrigins = [
-    "https://e-learning-website-five-alpha.vercel.app",
-    "https://e-learning-website-git-main-dinesh-976d.vercel.app",
-];
-
 app.use(
     cors({
-        origin: function (origin, callback) {
-            // Allow requests without an origin
-            // Example: Postman, server-to-server requests
-            if (!origin) {
-                return callback(null, true);
-            }
-
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-
-            return callback(
-                new Error(`CORS blocked for origin: ${origin}`)
-            );
-        },
+        origin: "https://e-learning-website-five-alpha.vercel.app",
         credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
-
 // ===============================
 // MIDDLEWARE
 // ===============================
