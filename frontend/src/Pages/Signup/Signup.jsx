@@ -10,15 +10,56 @@ import Radiobtn from "../Components/RadioBtn/Radiobtn";
 
 import Header from "../Home/Header/Header";
 
+// Backend URL
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "https://YOUR-BACKEND-URL.com"
+).replace(/\/$/, "");
+
+// Safely parse server response
+const parseResponse = async (response) => {
+  const contentType = response.headers.get("content-type") || "";
+  const text = await response.text();
+
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+
+    if (contentType.includes("application/json")) {
+      try {
+        const errorData = JSON.parse(text);
+        message = errorData.message || message;
+      } catch (error) {
+        // Keep default message
+      }
+    } else if (text) {
+      message = `${message}: ${text.substring(0, 150)}`;
+    }
+
+    throw new Error(message);
+  }
+
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      "Server returned HTML/text instead of JSON. Check your backend URL."
+    );
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error("Invalid JSON response received from server.");
+  }
+};
+
 const Signup = () => {
-  // State to hold user input and errors
   const [Firstname, setFirstName] = useState("");
   const [Lastname, setLastName] = useState("");
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
+
   const [errors, setErrors] = useState({});
   const [userType, setUserType] = useState("");
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -41,79 +82,94 @@ const Signup = () => {
       newErrors.lastname = "Last name is required";
     }
 
+    // Email validation
     if (!Email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(Email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(Email)) {
       newErrors.email = "Invalid email format";
     }
 
+    // Password validation
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    if (!passwordRegex.test(Password)) {
+    if (!Password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (!passwordRegex.test(Password)) {
       newErrors.password =
         "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.";
     }
 
+    // User type validation
     if (!userType) {
       newErrors.userType = "Please select a user type";
     }
 
+    // Stop if validation fails
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // Prepare data object to send to backend
+    // Prepare data
     const data = {
-      Firstname: Firstname,
-      Lastname: Lastname,
-      Email: Email,
+      Firstname: Firstname.trim(),
+      Lastname: Lastname.trim(),
+      Email: Email.trim(),
       Password: Password,
     };
 
+    setLoading(true);
+
     try {
       /*
-       * IMPORTANT:
-       * VITE_API_URL comes from the Vercel environment variable.
+       * Backend routes:
        *
-       * Example:
-       * VITE_API_URL=https://your-backend.onrender.com/api
+       * /api/student/signup
+       * /api/teacher/signup
        *
-       * If userType = "student", the final URL becomes:
+       * If userType = student:
        * https://your-backend.onrender.com/api/student/signup
+       *
+       * If userType = teacher:
+       * https://your-backend.onrender.com/api/teacher/signup
        */
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/${userType}/signup`,
+        `${API_BASE_URL}/api/${userType}/signup`,
         {
           method: "POST",
           mode: "cors",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify(data),
         }
       );
 
-      // Try to read JSON response
-      const responseData = await response.json();
-
-      setErr(responseData.message || "");
+      const responseData = await parseResponse(response);
 
       if (response.ok) {
         console.log("Registration successful");
 
-        navigate("/varifyEmail");
-      } else if (response.status === 400) {
-        setErrors(responseData.errors || {});
-      } else {
-        console.error(
-          "Registration failed with status code:",
-          response.status
-        );
+        // Show backend message if available
+        setErr(responseData.message || "");
 
+        navigate("/varifyEmail");
+        return;
+      }
+
+      // Bad request / validation error
+      if (response.status === 400) {
+        setErrors(
+          responseData.errors || {
+            general:
+              responseData.message || "Invalid registration details.",
+          }
+        );
+      } else {
         setErr(
           responseData.message ||
             `Registration failed. Status code: ${response.status}`
@@ -122,9 +178,13 @@ const Signup = () => {
     } catch (error) {
       console.error("Signup error:", error);
 
-      setErr("Unable to connect to the server. Please try again.");
-
       setErrors({});
+      setErr(
+        error.message ||
+          "Unable to connect to the server. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -141,6 +201,8 @@ const Signup = () => {
 
           <div className="inpts">
             <form onSubmit={handleSubmit}>
+
+              {/* First Name */}
               <input
                 type="text"
                 className="input-x input-4"
@@ -150,9 +212,12 @@ const Signup = () => {
               />
 
               {errors.firstname && (
-                <div className="error-message">{errors.firstname}</div>
+                <div className="error-message">
+                  {errors.firstname}
+                </div>
               )}
 
+              {/* Last Name */}
               <input
                 type="text"
                 className="input-x input-5"
@@ -162,9 +227,12 @@ const Signup = () => {
               />
 
               {errors.lastname && (
-                <div className="error-message">{errors.lastname}</div>
+                <div className="error-message">
+                  {errors.lastname}
+                </div>
               )}
 
+              {/* Email */}
               <input
                 type="text"
                 className="input-x input-6"
@@ -174,9 +242,12 @@ const Signup = () => {
               />
 
               {errors.email && (
-                <div className="error-message">{errors.email}</div>
+                <div className="error-message">
+                  {errors.email}
+                </div>
               )}
 
+              {/* Password */}
               <input
                 type="password"
                 className="input-x input-7"
@@ -186,9 +257,12 @@ const Signup = () => {
               />
 
               {errors.password && (
-                <div className="error-message">{errors.password}</div>
+                <div className="error-message">
+                  {errors.password}
+                </div>
               )}
 
+              {/* User Type */}
               <div className="rad-btns">
                 <Radiobtn
                   userType={userType}
@@ -197,9 +271,12 @@ const Signup = () => {
               </div>
 
               {errors.userType && (
-                <div className="error-message">{errors.userType}</div>
+                <div className="error-message">
+                  {errors.userType}
+                </div>
               )}
 
+              {/* Login Link */}
               <div className="signupage">
                 <span>Already have an account? </span>
 
@@ -212,25 +289,40 @@ const Signup = () => {
                 </NavLink>
               </div>
 
+              {/* Signup Button */}
               <div className="btn">
-                <button type="submit" className="btn-4">
-                  Signup
+                <button
+                  type="submit"
+                  className="btn-4"
+                  disabled={loading}
+                >
+                  {loading ? "Signing up..." : "Signup"}
                 </button>
               </div>
             </form>
 
-            {err && <div className="error-message">{err}</div>}
+            {/* General Error */}
+            {err && (
+              <div className="error-message">
+                {err}
+              </div>
+            )}
           </div>
         </article>
 
         <div className="right-part">
-          <img src={Images} alt="" className="imgs" />
+          <img
+            src={Images}
+            alt=""
+            className="imgs"
+          />
         </div>
       </div>
 
       <p className="text-sm text-red-400 absolute bottom-3 left-3">
-        * Password must be at least 8 characters long and include an uppercase
-        letter, a lowercase letter, a number, and a special character.
+        * Password must be at least 8 characters long and include an
+        uppercase letter, a lowercase letter, a number, and a special
+        character.
       </p>
     </>
   );
