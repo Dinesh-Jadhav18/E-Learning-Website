@@ -7,8 +7,7 @@ Please visit [here](https://code2tutorial.com/tutorial/55a23a94-6cb7-4c48-92c1-f
 
 Develop a comprehensive online learning platform with three user types (Student, Teacher, Admin), featuring course creation, approval process, and live video conferencing.
 
-## *BACKEND for the PROJECT
-   - Backend is developed by [Parag](https://github.com/paragkadyan).
+
 
 ## Features
 ![Screenshot 2024-05-14 212028](https://github.com/Pika003/e-Learning-Platform/assets/104189733/e2f9ce48-764b-48d2-8af1-188ea2918e8c)
@@ -57,10 +56,6 @@ Develop a comprehensive online learning platform with three user types (Student,
 
 ## *Tech Stack:*
 
-#### *UI/UX:*
-  - [figma](https://www.figma.com/file/6b4R8evBkii6mI53IA4vSS/Online-Learning-Platform?type=design&node-id=0-1&mode=design&t=HBUPk2hRYW3ioAUj-0) 
-  - Dribbble
-
 #### *Frontend:*
   - React (Vite) for dynamic and responsive UI.
 
@@ -87,15 +82,6 @@ Follow the steps below to run the project on your local machine.
 - [MongoDB](https://www.mongodb.com/) (local or Atlas cloud)
 - [Git](https://git-scm.com/)
 
----
-
-### 📦 Clone the Repository
-
-```bash
-git clone https://github.com/Pika003/e-Learning-Platform.git
-cd e-Learning-Platform
-  - Fill the env file with your credentials
-npm install
-npm run dev
+-
 
 
